@@ -1,0 +1,8 @@
+
+# Roblox Studio Files
+/*.rbxlx.lock
+/*.rbxl.lock
+/*.rbxl
+
+# Packages
+modules/Packages/*

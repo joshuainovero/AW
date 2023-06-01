@@ -1,0 +1,89 @@
+{
+  "name": "AW",
+  "tree": {
+      "$className": "DataModel",
+
+      "Workspace": {
+          "$className": "Workspace",
+          "$properties": {
+              "FilteringEnabled": true
+          },
+
+          "$path": "assets/Workspace"
+      },
+
+      "Lighting": {
+          "$className": "Lighting",
+          "$properties": {
+              "Ambient": [0.2745098039, 0.2745098039, 0.2745098039],
+              "Brightness": 3,
+              "ColorShift_Bottom": [0,0,0],
+              "ColorShift_Top": [0,0,0],
+              "EnvironmentDiffuseScale": 1, 
+              "EnvironmentSpecularScale": 1,
+              "GlobalShadows": true,
+              "OutdoorAmbient": [0.2745098039, 0.2745098039, 0.2745098039],
+              "ShadowSoftness": 0.2,
+              "Technology": "ShadowMap",
+              "ClockTime": 12,
+              "GeographicLatitude": 0,
+              "TimeOfDay": "12:00:00",
+              "ExposureCompensation": 0
+          },
+          "$path" : "assets/Lighting"
+      },
+
+      "Players" : {
+          "$className": "Players"
+      },
+
+      "MaterialService": {
+          "$className": "MaterialService",
+          "$properties": {
+              "Use2022MaterialsXml": {"Bool": true}
+          }
+      },
+
+      "SoundService": {
+          "$properties": {
+          "RespectFilteringEnabled": true
+          }
+      },
+
+      "ReplicatedStorage": {
+          "$className": "ReplicatedStorage",
+          "$path": "src/storage/ReplicatedStorage",
+
+          "Packages": {
+              "$className": "Folder",
+              "$path": "modules/Packages"
+          },
+
+          "Assets": {
+              "$className": "Folder",
+              "$path": "assets/ReplicatedStorage"
+          }
+      },
+
+      "ServerScriptService": {
+          "$className": "ServerScriptService",
+          "Server": {
+          "$path": "src/server"
+          }
+      },
+
+      "StarterPlayer": {
+          "$className": "StarterPlayer",
+
+          "StarterPlayerScripts": {
+              "$className": "StarterPlayerScripts",
+              "$path": "src/client/StarterPlayerScripts"
+          },
+
+          "StarterCharacterScripts": {
+              "$className": "StarterCharacterScripts",
+              "$path": "src/client/StarterCharacterScripts"
+          }
+      }
+  }
+}
