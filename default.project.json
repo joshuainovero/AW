@@ -83,7 +83,9 @@
           "StarterCharacterScripts": {
               "$className": "StarterCharacterScripts",
               "$path": "src/client/StarterCharacterScripts"
-          }
+          },
+
+        "$path": "assets/ReplicatedStorage/Models/StarterCharacter"
       }
   }
 }
