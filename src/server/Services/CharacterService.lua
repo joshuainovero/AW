@@ -45,6 +45,8 @@ end
 
 function CharacterService:KnitInit()
     Players.PlayerAdded:Connect(function(player)
+        player.CameraMaxZoomDistance = 5.5
+        player.CameraMinZoomDistance = 5.5
         player.CharacterAdded:Connect(function(character)
             self:_rigInit(character)
         end)
