@@ -16,6 +16,10 @@ function HandToolsService.Client:equipToolRequested(player, toolType)
     self.Server:equipTool(player, toolType)
 end
 
+function HandToolsService.Client:giveToolRequested(player, toolType)
+    self.Server:giveTool(player, toolType)
+end
+
 function HandToolsService.Client:unequipToolRequested(player)
     self.Server:unequipTools(player)
 end
@@ -25,25 +29,42 @@ function HandToolsService:_getEquippedTool(player)
     return character:FindFirstChildOfClass("Tool")
 end
 
-function HandToolsService:equipTool(player, toolType)
-    local character = player.Character or player.CharacterAdded:Wait()
-    local humanoid = character:waitForChild("Humanoid")
+function HandToolsService:equipTool(player: Player, toolType)
+    -- local character = player.Character or player.CharacterAdded:Wait()
+    -- local humanoid = character:waitForChild("Humanoid")
 
-    local equippedTool = self:_getEquippedTool(player)
-    if equippedTool then
-        self:unequipTools(player)
-    end
+    -- local equippedTool = self:_getEquippedTool(player)
+    -- if equippedTool then
+    --     self:unequipTools(player)
+    -- end
 
-    local tool = tools:FindFirstChild(toolType)
-    if not tool then
-        warn(("%s tool not found in ReplicatedStorage.Assets.Tools!"):format(toolType))
-        return
-    end
+    -- local tool = tools:FindFirstChild(toolType)
+    -- if not tool then
+    --     warn(("%s tool not found in ReplicatedStorage.Assets.Tools!"):format(toolType))
+    --     return
+    -- end
 
-    local clonedTool = tool:Clone()
-    clonedTool.Parent = character
-    humanoid:EquipTool(clonedTool)
-    self.Client.clientToolEquipped:Fire(player, toolType)
+    -- local clonedTool = tool:Clone()
+    -- clonedTool.Parent = player.Backpack
+    -- humanoid:EquipTool(clonedTool)
+    -- self.Client.clientToolEquipped:Fire(player, toolType)
+
+    -- local character = player.Character or player.CharacterAdded:Wait()
+    -- local humanoid = character:waitForChild("Humanoid")
+
+    -- -- local equippedTool = self:_getEquippedTool(player)
+    -- -- if equippedTool then
+    -- --     self:unequipTools(player)
+    -- -- end
+
+    -- local backpack = player.Backpack
+    -- local tool = backpack:FindFirstChild(toolType)
+    -- if not tool then
+    --     warn(("%s tool not found in ReplicatedStorage.Assets.Tools!"):format(toolType))
+    --     return
+    -- end
+
+
 end
 
 function HandToolsService:unequipTools(player)
@@ -55,6 +76,18 @@ function HandToolsService:unequipTools(player)
     end
 
     self.Client.clientToolUnequipped:Fire(player)
+end
+
+function HandToolsService:giveTool(player: Player, toolType)
+
+    local tool = tools:FindFirstChild(toolType)
+    if not tool then
+        warn(("%s tool not found in ReplicatedStorage.Assets.Tools!"):format(toolType))
+        return
+    end
+
+    local clonedTool = tool:Clone()
+    clonedTool.Parent = player.Backpack
 end
 
 return HandToolsService

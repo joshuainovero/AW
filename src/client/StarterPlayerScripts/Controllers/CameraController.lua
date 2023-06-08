@@ -20,8 +20,70 @@ local CameraController = Knit.CreateController({
     camera = workspace.CurrentCamera
 })
 
-function CameraController:enableOTS()
+function CameraController:enableOTS(state: boolean)
+    local character = player.Character or player.CharacterAdded:Wait()
+    if not character:FindFirstChild("HumanoidRootPart") and not character:FindFirstChild("Head") and not character:FindFirstChild("Neck") and not character:FindFirstChild("Waist") and not character:FindFirstChild("Humanoid") then
+        print("Returning")
+        return
+    end
+
+    local humanoid = character.Humanoid
+
+    if state then
+        self._OTSJanitor:Cleanup()
+        self._OTSJanitor:Add(RunService.Stepped:Connect(function()
+
+            
+            local humanoidRootPart = character.HumanoidRootPart
+            local head = character.Head
+            local upperTorso = character.UpperTorso
+            local waist = upperTorso:FindFirstChild("Waist")
     
+            if not waist then
+                return
+            end
+    
+            UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
+            humanoid.AutoRotate = false
+            humanoid.CameraOffset = Vector3.new(2.1,0,0)
+    
+            local lookVector = self.camera.CFrame.LookVector
+    
+            local rootPos = humanoidRootPart.Position
+            local distance = 900
+        
+            humanoidRootPart.CFrame = CFrame.new(rootPos, lookVector * Vector3.new(1, 0, 1) * distance)
+            if character:FindFirstChild("UpperTorso") and character:FindFirstChild("Head") then
+                if self.camera.CameraSubject:IsDescendantOf(character) or self.camera.CameraSubject:IsDescendantOf(player) then
+        
+                    local point = self:_getTargetPosition()
+        
+                    local hypotenuse = (head.CFrame.Position - point).magnitude
+        
+                    local opposite = head.CFrame.Y - point.Y
+        
+        
+                    local localizedCFrame = (CFrame.new(waist.C0.Position) * CFrame.Angles((math.asin(opposite / hypotenuse)),0,0)):ToObjectSpace(waist.Transform)
+                    transformedValue = localizedCFrame
+                    waist.Transform =  CFrame.new(waist.C0.Position) * transformedValue
+                    -- if tick() - tickUpdate >= 0.1 then
+                    -- 	tickUpdate = tick()
+                    -- 	-- game.ReplicatedStorage.Remotes.Server.ReplicateTransform:FireServer()
+                    -- end
+                    local YMovement = UserInputService:GetMouseDelta().Y
+                    if YMovement ~= 0 then
+                        -- task.wait(0.05)
+                        -- game.ReplicatedStorage.Remotes.Server.ReplicateTransform:FireServer(math.asin(opposite/hypotenuse))
+                    end
+                end
+            end	
+    
+        end))
+    else
+        self._OTSJanitor:Cleanup()
+        humanoid.CameraOffset = Vector3.new(0,0,0)
+        humanoid.AutoRotate = true
+    end
 end
 
 function CameraController:_getTargetPosition()
@@ -45,63 +107,7 @@ function CameraController:_getTargetPosition()
 end
 
 function CameraController:KnitStart()
-    self._OTSJanitor:Add(RunService.Stepped:Connect(function()
-        local character = player.Character or player.CharacterAdded:Wait()
-        if not character:FindFirstChild("HumanoidRootPart") and not character:FindFirstChild("Head") and not character:FindFirstChild("Neck") and not character:FindFirstChild("Waist") and not character:FindFirstChild("Humanoid") then
-            
-            print("Returning")
-            return
-        end
-        
-        local humanoid = character.Humanoid
-        local humanoidRootPart = character.HumanoidRootPart
-        local head = character.Head
-        local upperTorso = character.UpperTorso
-        local waist = upperTorso:FindFirstChild("Waist")
 
-        if not waist then
-            return
-        end
-
-        UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
-        humanoid.AutoRotate = false
-        humanoid.CameraOffset = Vector3.new(2.1,0,0)
-
-        local lookVector = self.camera.CFrame.LookVector
-
-        local rootPos = humanoidRootPart.Position
-        local distance = 900
-    
-        humanoidRootPart.CFrame = CFrame.new(rootPos, lookVector * Vector3.new(1, 0, 1) * distance)
-        if character:FindFirstChild("UpperTorso") and character:FindFirstChild("Head") then
-            if self.camera.CameraSubject:IsDescendantOf(character) or self.camera.CameraSubject:IsDescendantOf(player) then
-    
-                local point = self:_getTargetPosition()
-    
-                local hypotenuse = (head.CFrame.Position - point).magnitude
-    
-                local opposite = head.CFrame.Y - point.Y
-    
-    
-                local localizedCFrame = (CFrame.new(waist.C0.Position) * CFrame.Angles((math.asin(opposite / hypotenuse)),0,0)):ToObjectSpace(waist.Transform)
-                transformedValue = localizedCFrame
-                waist.Transform =  CFrame.new(waist.C0.Position) * transformedValue
-                -- if tick() - tickUpdate >= 0.1 then
-                -- 	tickUpdate = tick()
-                -- 	-- game.ReplicatedStorage.Remotes.Server.ReplicateTransform:FireServer()
-                -- end
-                local YMovement = UserInputService:GetMouseDelta().Y
-                if YMovement ~= 0 then
-                    -- task.wait(0.05)
-                    -- game.ReplicatedStorage.Remotes.Server.ReplicateTransform:FireServer(math.asin(opposite/hypotenuse))
-                end
-            end
-    
-            
-    
-        end	
-
-    end))
 
 
 end

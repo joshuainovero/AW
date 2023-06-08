@@ -28,7 +28,7 @@ function SpawnerController:KnitStart()
         proximityPrompt.Parent = spawner
 
         proximityPrompt.TriggerEnded:Connect(function()
-            HandToolService:equipToolRequested(spawner.Name)
+            HandToolService:giveToolRequested(spawner.Name)
         end)
 
         local gun: Tool = ReplicatedStorage.Assets.Guns:FindFirstChild(spawner.Name)
