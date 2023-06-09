@@ -52,7 +52,7 @@ function GunController:_getTargetPosition()
     rayFilter.FilterDescendantsInstances = {localPlayer.Character}
     rayFilter.FilterType = Enum.RaycastFilterType.Exclude
 
-    local rayMagnitude = 1000000
+    local rayMagnitude = math.huge
     local ray = workspace:Raycast(cameraRay.Origin, cameraRay.Direction * rayMagnitude, rayFilter)
     local targetPosition
 
