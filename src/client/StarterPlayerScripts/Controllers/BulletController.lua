@@ -95,7 +95,6 @@ function BulletController:renderBullet(character, startPos, direction, gunSettin
 		task.wait()
 	until tick() - t >= 1/60
 	bullet:Destroy()
-	print(gunSettings.Range)
 end
 
 function BulletController:KnitStart()
