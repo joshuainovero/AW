@@ -85,6 +85,10 @@
               "$path": "src/client/StarterCharacterScripts"
           },
 
+          "$properties": {
+            "EnableMouseLockOption": false
+          },
+
         "$path": "assets/ReplicatedStorage/Models/StarterCharacter"
       }
   }
