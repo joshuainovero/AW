@@ -19,16 +19,21 @@ local GunController = Knit.CreateController({
         reload = {}
     },
 
-    gunSettings = {},
+    gunSettings = {} :: table,
 
-    currentTool = nil,
+    currentTool = nil :: Tool,
 
-    currentIdleTrack = nil,
-    currentRecoilTrack = nil,
-    currentReloadTrack = nil,
+    currentIdleTrack = nil :: AnimationTrack,
+    currentRecoilTrack = nil :: AnimationTrack,
+    currentReloadTrack = nil :: AnimationTrack,
 
-    recoilRecoverConnection = nil
-    
+    recoilRecoverConnection = nil :: RBXScriptConnection,
+    zoomInConnection = nil :: RBXScriptConnection,
+    zoomOutConnection = nil :: RBXScriptConnection,
+
+    _fireTick = tick() :: number,
+
+    _onTrigger = false :: boolean
 })
 
 function GunController:_setGunPresets(settings)
@@ -41,8 +46,6 @@ function GunController:_setGunPresets(settings)
     self.gunSettings.Auto = settings.Auto
     self.gunSettings.RecoilAnimSpeed = settings.RecoilAnimSpeed
     self.gunSettings.MagazineCapacity = settings.MagazineCapacity
-
-    print(self.gunSettings)
 end
 
 function GunController:_getTargetPosition()
@@ -52,7 +55,7 @@ function GunController:_getTargetPosition()
     rayFilter.FilterDescendantsInstances = {localPlayer.Character}
     rayFilter.FilterType = Enum.RaycastFilterType.Exclude
 
-    local rayMagnitude = math.huge
+    local rayMagnitude = 9999999
     local ray = workspace:Raycast(cameraRay.Origin, cameraRay.Direction * rayMagnitude, rayFilter)
     local targetPosition
 
@@ -88,6 +91,11 @@ function GunController:_recoil()
 end
 
 function GunController:_fire(character)
+    if tick() - self._fireTick < self.gunSettings.FireRate then
+        return
+    end
+
+    self._fireTick = tick()
 
     local targetPosition = self:_getTargetPosition()
     local startPos = self.currentTool.Parts.main.Muzzle.WorldPosition
@@ -104,7 +112,6 @@ function GunController:_fire(character)
 end
 
 function GunController:loadAnimations()
-    print("Loaded")
     local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
     local humanoid = character:WaitForChild("Humanoid")
 
@@ -127,7 +134,6 @@ function GunController:loadAnimations()
 
     character.ChildAdded:Connect(function(child)
         if child:IsA("Tool") then
-            print(child)
             self:_setGunPresets(gunPresets[child.Name])
             self.currentIdleTrack = self.gunAnimations.idle[child.Name].AnimationTrack
             self.currentRecoilTrack = self.gunAnimations.recoil[child.Name].AnimationTrack
@@ -155,13 +161,65 @@ end
 function GunController:KnitStart()
     UserInputService.InputBegan:Connect(function(input, gp)
         local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
-        local humanoid = character:WaitForChild("Humanoid")
 
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            self:_fire(character)
+            self._onTrigger = true
+            if self.gunSettings.Auto then
+                RunService:BindToRenderStep("AutoGun", 2, function()
+                    self:_fire(character)
+                end)
+            else
+                self:_fire(character)
+            end
+
+        elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
+            if not self.zoomInConnection then
+                if self.zoomOutConnection then
+                    self.zoomOutConnection:Disconnect()
+                    self.zoomOutConnection = nil
+                end
+
+                self.zoomInConnection = RunService.RenderStepped:Connect(function(dt)
+                    if localPlayer.CameraMinZoomDistance >= 2.2 then
+                        localPlayer.CameraMinZoomDistance -= dt * 25
+                        localPlayer.CameraMaxZoomDistance -= dt * 25
+                    else
+                        self.zoomInConnection:Disconnect()
+                        self.zoomInConnection = nil
+                    end
+                end)
+            end
         end
     end)
 
+    UserInputService.InputEnded:Connect(function(input, gp)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            if self._onTrigger then
+                self._onTrigger = false
+                RunService:UnbindFromRenderStep("AutoGun")
+            end
+
+        elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
+            if not self.zoomOutConnection then
+                if self.zoomInConnection then
+                    self.zoomInConnection:Disconnect()
+                    self.zoomInConnection = nil
+                end
+
+                self.zoomOutConnection = RunService.RenderStepped:Connect(function(dt)
+                    if localPlayer.CameraMinZoomDistance < 5.5 then
+                        localPlayer.CameraMinZoomDistance += dt * 25
+                        localPlayer.CameraMaxZoomDistance += dt * 25
+                    else
+                        localPlayer.CameraMinZoomDistance = 5.5
+                        localPlayer.CameraMaxZoomDistance = 5.5
+                        self.zoomOutConnection:Disconnect()
+                        self.zoomOutConnection = nil
+                    end
+                end)
+            end
+        end
+    end)
 end
 
 function GunController:KnitInit()
