@@ -1,6 +1,6 @@
  return {
     ["AK47"] = {
-        FireRate = 0.1,
+        FireRate = 0.12,
         Range = 3000,
         Velocity = 1650,
         BaseDamage = 10,
