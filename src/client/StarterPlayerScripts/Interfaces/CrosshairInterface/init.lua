@@ -9,15 +9,15 @@ local Container = require(script:WaitForChild("Components"):WaitForChild("Contai
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
-local AmmoHUDInterface = Knit.CreateController({
+local CrosshairInterface = Knit.CreateController({
     Name = script.Name
 })
 
-function AmmoHUDInterface:render()
+function CrosshairInterface:render()
     return Roact.createElement(Container)
 end
 
-function AmmoHUDInterface:openInterface()
+function CrosshairInterface:openInterface()
     self.roactHandle = Roact.mount(Roact.createElement("ScreenGui", {
         ResetOnSpawn = false,
         IgnoreGuiInset = true
@@ -26,12 +26,16 @@ function AmmoHUDInterface:openInterface()
     }), playerGui, script.Name)
 end
 
-function AmmoHUDInterface:KnitStart()
+function CrosshairInterface:closeInterface()
+    Roact.unmount(self.roactHandle)
+end
+
+function CrosshairInterface:KnitStart()
     -- self:openInterface()
 end
 
-function AmmoHUDInterface:KnitInit()
+function CrosshairInterface:KnitInit()
 
 end
 
-return AmmoHUDInterface
+return CrosshairInterface

@@ -1,5 +1,9 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Guns = require(ReplicatedStorage.Enums.Guns)
+
 return {
-    ["AK47"] = {
+    [Guns.AK47] = {
         FireSound       = "rbxassetid://2476570846",
         IdleAnimation   = "rbxassetid://11322856622",
         RecoilAnimation = "rbxassetid://11330628466",
@@ -10,7 +14,7 @@ return {
         ViewportSizeX = 0.27
     },
 
-    ["M16A4"] = {
+    [Guns.M16A4] = {
         FireSound       = "rbxassetid://283876003",
         IdleAnimation   = "rbxassetid://11322856622",
         RecoilAnimation = "rbxassetid://11330628466",
@@ -21,7 +25,7 @@ return {
         ViewportSizeX = 0.27
     },
 
-    ["Glock17"] = {
+    [Guns.Glock17] = {
         FireSound       = "rbxassetid://165946474",
         IdleAnimation   = "rbxassetid://11364719585",
         RecoilAnimation = "rbxassetid://11364933218",

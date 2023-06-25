@@ -1,5 +1,9 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Guns = require(ReplicatedStorage.Enums.Guns)
+ 
  return {
-    ["AK47"] = {
+    [Guns.AK47] = {
         FireRate = 0.12,
         Range = 3000,
         Velocity = 1650,
@@ -12,7 +16,7 @@
         AmmoType = "39mm"
     },
 
-    ["M16A4"] = {
+    [Guns.M16A4] = {
         FireRate = 0.1,
         Range = 3000,
         Velocity = 1650,
@@ -25,7 +29,7 @@
         AmmoType = "5.56x45mm" 
     },
 
-    ["Glock17"] = {
+    [Guns.Glock17] = {
         FireRate = 0.15,
         Range = 3000,
         Velocity = 1650,

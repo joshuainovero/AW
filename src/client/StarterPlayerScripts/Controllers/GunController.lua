@@ -5,11 +5,13 @@ local Players = game:GetService("Players")
 local localPlayer = Players.LocalPlayer
 
 local Knit = require(ReplicatedStorage.Packages.Knit)
+local Signal = require(ReplicatedStorage.Packages.Signal)
 
 local gunPresets = require(ReplicatedStorage.Data.GunPresets)
 
 local BulletController
 local CameraController
+local CrosshairInterface
 local GunController = Knit.CreateController({
     Name = script.Name,
 
@@ -33,7 +35,9 @@ local GunController = Knit.CreateController({
 
     _fireTick = tick() :: number,
 
-    _onTrigger = false :: boolean
+    _onTrigger = false :: boolean,
+
+    fired = Signal.new()
 })
 
 function GunController:_setGunPresets(settings)
@@ -94,7 +98,7 @@ function GunController:_fire(character)
     if tick() - self._fireTick < self.gunSettings.FireRate then
         return
     end
-
+    
     self._fireTick = tick()
 
     local targetPosition = self:_getTargetPosition()
@@ -104,6 +108,8 @@ function GunController:_fire(character)
 
     self.currentRecoilTrack:Play()
     self.currentRecoilTrack:AdjustSpeed(self.gunSettings.RecoilAnimSpeed)
+
+    self.fired:Fire()
     task.spawn(function()
         self:_recoil()
     end)
@@ -141,6 +147,7 @@ function GunController:loadAnimations()
             self.currentTool = child
             self.currentIdleTrack:Play()
             CameraController:enableOTS(true)
+            CrosshairInterface:openInterface()
         end
     end)
 
@@ -152,6 +159,7 @@ function GunController:loadAnimations()
                 self.currentReloadTrack:Stop()
                 self.currentTool = nil
                 CameraController:enableOTS(false)
+                CrosshairInterface:closeInterface()
             end
         end
     end)
@@ -225,6 +233,7 @@ end
 function GunController:KnitInit()
     BulletController = Knit.GetController("BulletController")
     CameraController = Knit.GetController("CameraController")
+    CrosshairInterface = Knit.GetController("CrosshairInterface")
 end
 
 return GunController
