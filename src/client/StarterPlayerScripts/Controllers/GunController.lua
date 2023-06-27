@@ -37,7 +37,9 @@ local GunController = Knit.CreateController({
 
     _onTrigger = false :: boolean,
 
-    fired = Signal.new()
+    fired = Signal.new(),
+
+    zoomedIn = Signal.new()
 })
 
 function GunController:_setGunPresets(settings)
@@ -187,6 +189,8 @@ function GunController:KnitStart()
                     self.zoomOutConnection = nil
                 end
 
+                self.zoomedIn:Fire(true)
+
                 self.zoomInConnection = RunService.RenderStepped:Connect(function(dt)
                     if localPlayer.CameraMinZoomDistance >= 2.2 then
                         localPlayer.CameraMinZoomDistance -= dt * 25
@@ -214,6 +218,8 @@ function GunController:KnitStart()
                     self.zoomInConnection = nil
                 end
 
+                self.zoomedIn:Fire(false)
+
                 self.zoomOutConnection = RunService.RenderStepped:Connect(function(dt)
                     if localPlayer.CameraMinZoomDistance < 5.5 then
                         localPlayer.CameraMinZoomDistance += dt * 25
@@ -234,6 +240,8 @@ function GunController:KnitInit()
     BulletController = Knit.GetController("BulletController")
     CameraController = Knit.GetController("CameraController")
     CrosshairInterface = Knit.GetController("CrosshairInterface")
+
+    UserInputService.MouseIconEnabled = false
 end
 
 return GunController

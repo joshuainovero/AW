@@ -2,6 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
 local Knit = require(ReplicatedStorage.Packages.Knit)
+local Signal = require(ReplicatedStorage.Packages.Signal)
 local Roact = require(ReplicatedStorage.Vendor.Roact)
 
 local Container = require(script:WaitForChild("Components"):WaitForChild("Container"))
