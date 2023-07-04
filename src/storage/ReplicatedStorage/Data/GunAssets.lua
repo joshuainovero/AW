@@ -34,5 +34,16 @@ return {
         ViewportOffsetItem = 2,
         ViewportAngle = CFrame.Angles(0,math.rad(90),0),
         ViewportSizeX = 0.1
+    },
+
+    [Guns.M40A5] = {
+        FireSound       = "rbxassetid://283876003",
+        IdleAnimation   = "rbxassetid://11322856622",
+        RecoilAnimation = "rbxassetid://11330628466",
+        ReloadAnimation = "rbxassetid://11365168178",
+        ViewportOffset = -0.35,
+        ViewportOffsetItem = 0.5,
+        ViewportAngle = CFrame.Angles(0,math.rad(270),0),
+        ViewportSizeX = 0.27
     }
 }

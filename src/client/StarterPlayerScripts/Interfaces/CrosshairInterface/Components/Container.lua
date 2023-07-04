@@ -21,28 +21,26 @@ function Container:init()
     self.frameRef = Roact.createRef()
 
     self:setState({
-        radius = 45
+        radius = 42
     })
 end
 
 function Container:didMount()
     local frame: Frame = self.frameRef:getValue()
-    local frameRadius = self.state.radius
 
     self._janitor:Add(GunController.fired:Connect(function()
 
-        frame.Size = UDim2.fromOffset(frame.Size.X.Offset + 8, frame.Size.Y.Offset + 8)
+        frame.Size = UDim2.fromOffset(frame.Size.X.Offset + 10, frame.Size.Y.Offset + 10)
         local info = TweenInfo.new(0.2, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, 0, false, 0)
         TweenService:Create(frame, info, {Size = UDim2.fromOffset(self.state.radius, self.state.radius)}):Play()
     end))
 
     self._janitor:Add(GunController.zoomedIn:Connect(function(state)
-        print("Hey")
         local info = TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, 0, false, 0)
         if state then
-            self.state.radius = 35
+            self.state.radius = 30
         else
-            self.state.radius = 45
+            self.state.radius = 42
         end
         TweenService:Create(frame, info, {Size = UDim2.fromOffset(self.state.radius, self.state.radius)}):Play()
     end))
@@ -65,8 +63,8 @@ function Container:render()
         }),
 
         hairs = Roact.createElement(HairsComponent, {
-            hairWidth = 15,
-            hairHeight = 4
+            hairWidth = 14,
+            hairHeight = 3
         })
     })
 end

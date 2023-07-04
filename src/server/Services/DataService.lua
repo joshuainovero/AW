@@ -6,119 +6,99 @@ local Knit = require(ReplicatedStorage.Packages.Knit)
 local Signal = require(ReplicatedStorage.Packages.Signal)
 local ProfileService = require(ReplicatedStorage.Vendor.ProfileService)
 
--- local ProfileTemplate = require(ReplicatedStorage.Core.Shared.Data.ProfileTemplate)
+local ProfileTemplate = require(ServerStorage.Data.ProfileTemplate)
 
-local CurrencyService
 local DataService = Knit.CreateService {
-    Name = "DataService",
+    Name = script.Name,
     Client = {
-        GetData = Knit.CreateSignal()
+        getData = Knit.CreateSignal()
     },
 
-	CURRENT_STORE_KEY = "RELEASE-BUILD-6",
+	CURRENT_STORE_KEY = "TEST-BUILD",
 
-	ProfileLoaded = Signal.new(),
+	profileLoaded = Signal.new(),
 
-    Profiles = {}
+    profiles = {}
 }
 
--- local ProfileStore = ProfileService.GetProfileStore("PlayerData", ProfileTemplate)
+local profileStore = ProfileService.GetProfileStore("PlayerData", ProfileTemplate)
 
--- function DataService.Client:getItemStatusRequested(player)
--- 	local profile = self.Server:GetPlayerProfile(player)
--- 	if not profile then
--- 		warn("Cannot get items status - player profile is nil.")
--- 		return nil
--- 	end
+function DataService:getPlayerProfile(player)
+	local found = self.profiles[player]
 
--- 	local profileData = profile.Data
--- 	return profileData.Backpack[BackpackCategory.HiddenItems]
--- end
+	return found
+end
 
--- function DataService:RetrievePlayerProfile(player)
--- 	local profile
--- 	local retrieveCounter = 0
+function DataService:_retrievePlayerProfile(player)
+	local profile
+	local retrieveCounter = 0
 
--- 	repeat
--- 		task.wait()
+	repeat
+		task.wait()
 
--- 		profile = ProfileStore:LoadProfileAsync(self.CURRENT_STORE_KEY.."-"..player.UserId)
--- 		retrieveCounter += 1
+		profile = profileStore:LoadProfileAsync(self.CURRENT_STORE_KEY.."-"..player.UserId)
+		retrieveCounter += 1
 
--- 	until retrieveCounter > 3 or profile ~= nil
+	until retrieveCounter > 3 or profile ~= nil
 
--- 	return profile
--- end
+	return profile
+end
 
--- function DataService:GetPlayerProfile(player)
--- 	local found = self.Profiles[player]
+function DataService:_releaseProfile(profile)
+	profile:Release()
+end
 
--- 	return found
--- end
+function DataService:_playerAdded(player)
+	local profile = DataService:_retrievePlayerProfile(player)
 
--- function DataService:ReleaseProfile(profile)
--- 	profile:Release()
--- end
+	if not profile then
+		player:Kick("Failed to load your data, please rejoin.")
+	end
 
--- function DataService:PlayerAdded(player)
--- 	local profile = DataService:RetrievePlayerProfile(player)
+	if profile.Data.Moderation.Banned then
+		-- Banned.
+		player:Kick("You have been banned from this experience.")
+		return
+	end
 
--- 	if not profile then
--- 		player:Kick("Failed to load your data, please rejoin.")
--- 	end
+	profile:AddUserId(player.UserId) -- GDPR compliance
+	profile:Reconcile() -- Fill in missing variables from ProfileTemplate
 
--- 	if profile.Data.Banned then
--- 		-- Banned.
--- 		player:Kick("You have been banned from this experience.")
--- 		return
--- 	end
+	profile:ListenToRelease(function()
+		self.profiles[player] = nil
+		player:Kick("Someone has joined another server using your account.")
+	end)
 
--- 	profile:AddUserId(player.UserId) -- GDPR compliance
--- 	profile:Reconcile() -- Fill in missing variables from ProfileTemplate
+	if player:IsDescendantOf(game.Players) then
+		self.profiles[player] = profile
+		self.profileLoaded:Fire(player)
+		return
+	end
 
--- 	profile:ListenToRelease(function()
--- 		self.Profiles[player] = nil
--- 		player:Kick("Someone has joined another server using your account.")
--- 	end)
+	DataService:_releaseProfile(profile)
+end
 
--- 	if player:IsDescendantOf(game.Players) then
--- 		self.Profiles[player] = profile
--- 		self.ProfileLoaded:Fire(player)
--- 		local data = profile.Data
--- 		local playerGems = data.Currency[CurrencyTypes.Gems]
--- 		local playerGold = data.Currency[CurrencyTypes.Gold]
+function DataService:_playerLeft(player)
+	local profile = self.profiles[player]
 
--- 		CurrencyService.Client.onUpdatedCurrency:Fire(player, CurrencyTypes.Gems, playerGems, false)
--- 		CurrencyService.Client.onUpdatedCurrency:Fire(player, CurrencyTypes.Gold, playerGold, false)
+	if profile ~= nil then
+		profile:Release()
+	end
+end
 
--- 		return
--- 	end
+function DataService:KnitInit()
 
--- 	DataService:ReleaseProfile(profile)
--- end
+    Players.PlayerAdded:Connect(function(player)
+        self:_playerAdded(player)
+    end)
 
--- function DataService:PlayerLeft(player)
--- 	local profile = self.Profiles[player]
+    Players.PlayerRemoving:Connect(function(player)
+        self:_playerLeft(player)
+    end)
 
--- 	if profile ~= nil then
--- 		profile:Release()
--- 	end
--- end
-
--- function DataService:KnitInit()
--- 	CurrencyService = Knit.GetService("CurrencyService")
-
---     Players.PlayerAdded:Connect(function(player)
---         self:PlayerAdded(player)
---     end)
-
---     Players.PlayerRemoving:Connect(function(player)
---         self:PlayerLeft(player)
---     end)
-
--- 	for _, player in Players:GetPlayers() do
--- 		self:PlayerAdded(player)
--- 	end
--- end
+	for _, player in Players:GetPlayers() do
+		self:_playerAdded(player)
+	end
+end
 
 return DataService

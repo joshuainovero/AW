@@ -9,6 +9,7 @@ local Signal = require(ReplicatedStorage.Packages.Signal)
 
 local gunPresets = require(ReplicatedStorage.Data.GunPresets)
 
+local BulletService
 local BulletController
 local CameraController
 local CrosshairInterface
@@ -116,7 +117,10 @@ function GunController:_fire(character)
         self:_recoil()
     end)
 
-    BulletController:renderBullet(character, startPos, direction, self.gunSettings)
+    task.spawn(function()
+        BulletController:renderBullet(character, startPos, direction, self.gunSettings)
+    end)
+    BulletService.fireBullet:Fire(character, startPos, targetPosition)
 end
 
 function GunController:loadAnimations()
@@ -237,6 +241,7 @@ function GunController:KnitStart()
 end
 
 function GunController:KnitInit()
+    BulletService = Knit.GetService("BulletService")
     BulletController = Knit.GetController("BulletController")
     CameraController = Knit.GetController("CameraController")
     CrosshairInterface = Knit.GetController("CrosshairInterface")

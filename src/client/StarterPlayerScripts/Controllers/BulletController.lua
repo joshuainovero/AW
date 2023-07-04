@@ -1,7 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Knit = require(ReplicatedStorage.Packages.Knit)
-local Signal = require(ReplicatedStorage.Packages.Signal)
+local Janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local gunAssetsData = require(ReplicatedStorage.Data.GunAssets)
 
@@ -9,17 +9,23 @@ local bulletStorage = Instance.new('Folder')
 bulletStorage.Name = 'BulletStorage'
 bulletStorage.Parent = workspace
 
+local BulletService
+
 local BulletController = Knit.CreateController({
     Name = script.Name,
+
+	_janitor = Janitor.new()
 })
 
 function BulletController:renderBullet(character, startPos, direction, gunSettings, charException)
 	local player = game:GetService('Players').LocalPlayer
 	local playerCharacter = player.Character
-	if playerCharacter == charException then  
-        return 
+
+	if playerCharacter == charException then
+        return
     end
-	-- print('Rendering bullet')
+
+	print('Rendering bullet')
 	local lastPos = startPos
 	local startTime = tick()
 
@@ -91,18 +97,20 @@ function BulletController:renderBullet(character, startPos, direction, gunSettin
 	end	
 
 	local t = tick()
-	repeat 
+	repeat
 		task.wait()
 	until tick() - t >= 1/60
 	bullet:Destroy()
 end
 
 function BulletController:KnitStart()
-
+	self._janitor:Add(BulletService.renderClientBullet:Connect(function(character, startPos, direction, gunSettings, bulletOwner)
+		self:renderBullet(character, startPos, direction, gunSettings, bulletOwner)
+	end))
 end
 
 function BulletController:KnitInit()
-
+	BulletService = Knit.GetService("BulletService")
 end
 
 return BulletController

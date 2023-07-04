@@ -7,7 +7,7 @@ local Hairs = Roact.Component:extend(script.Name)
 
 local transparencySequence = NumberSequence.new({
     NumberSequenceKeypoint.new(0,0),
-    NumberSequenceKeypoint.new(1,0.887),
+    NumberSequenceKeypoint.new(1,0.8),
 })
 
 function Hairs:init(props)
