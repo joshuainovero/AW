@@ -53,6 +53,7 @@ function GunController:_setGunPresets(settings)
     self.gunSettings.Auto = settings.Auto
     self.gunSettings.RecoilAnimSpeed = settings.RecoilAnimSpeed
     self.gunSettings.MagazineCapacity = settings.MagazineCapacity
+    self.gunSettings.CrosshairEnabled = settings.CrosshairEnabled
 end
 
 function GunController:_getTargetPosition()
@@ -153,7 +154,10 @@ function GunController:loadAnimations()
             self.currentTool = child
             self.currentIdleTrack:Play()
             CameraController:enableOTS(true)
-            CrosshairInterface:openInterface()
+
+            if self.gunSettings.CrosshairEnabled then
+                CrosshairInterface:openInterface()
+            end
         end
     end)
 
