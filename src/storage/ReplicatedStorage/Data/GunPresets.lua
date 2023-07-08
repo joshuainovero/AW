@@ -14,7 +14,8 @@ local Guns = require(ReplicatedStorage.Enums.Guns)
         RecoilAnimSpeed = 1.3,
         Auto = true,
         AmmoType = "39mm",
-        CrosshairEnabled = true
+        CrosshairEnabled = true,
+        ScopeUI = false,
     },
 
     [Guns.M16A4] = {
@@ -28,7 +29,8 @@ local Guns = require(ReplicatedStorage.Enums.Guns)
         RecoilAnimSpeed = 1.3,
         Auto = true,
         AmmoType = "5.56x45mm",
-        CrosshairEnabled = true
+        CrosshairEnabled = true,
+        ScopeUI = false,
     },
 
     [Guns.Glock17] = {
@@ -42,20 +44,22 @@ local Guns = require(ReplicatedStorage.Enums.Guns)
         RecoilAnimSpeed = 1.5,
         Auto = false,
         AmmoType = "9mm",
-        CrosshairEnabled = true
+        CrosshairEnabled = true,
+        ScopeUI = false,
     },
 
     [Guns.M40A5] = {
         FireRate = 0.1,
         Range = 3000,
         Velocity = 1650,
-        BaseDamage = 10,
+        BaseDamage = 100,
         MagazineCapacity = 30,
         RecoilForce = 2,
         RecoilRecoverSpeed = 10,
         RecoilAnimSpeed = 1.3,
         Auto = true,
         AmmoType = "5.56x45mm",
-        CrosshairEnabled = false
+        CrosshairEnabled = false,
+        ScopeUI = true
     }
 }

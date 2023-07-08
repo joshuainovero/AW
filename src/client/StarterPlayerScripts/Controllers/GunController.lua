@@ -13,6 +13,7 @@ local BulletService
 local BulletController
 local CameraController
 local CrosshairInterface
+local ScopeInterface
 local GunController = Knit.CreateController({
     Name = script.Name,
 
@@ -54,6 +55,7 @@ function GunController:_setGunPresets(settings)
     self.gunSettings.RecoilAnimSpeed = settings.RecoilAnimSpeed
     self.gunSettings.MagazineCapacity = settings.MagazineCapacity
     self.gunSettings.CrosshairEnabled = settings.CrosshairEnabled
+    self.gunSettings.ScopeUI = settings.ScopeUI
 end
 
 function GunController:_getTargetPosition()
@@ -153,10 +155,16 @@ function GunController:loadAnimations()
             self.currentReloadTrack = self.gunAnimations.reload[child.Name].AnimationTrack
             self.currentTool = child
             self.currentIdleTrack:Play()
-            CameraController:enableOTS(true)
 
             if self.gunSettings.CrosshairEnabled then
                 CrosshairInterface:openInterface()
+            end
+
+            if self.gunSettings.ScopeUI then
+                CameraController:enableOTS(false)
+                CameraController:enableScope(true)
+            else
+                CameraController:enableOTS(true)
             end
         end
     end)
@@ -169,6 +177,7 @@ function GunController:loadAnimations()
                 self.currentReloadTrack:Stop()
                 self.currentTool = nil
                 CameraController:enableOTS(false)
+                CameraController:enableScope(false)
                 CrosshairInterface:closeInterface()
             end
         end
@@ -199,20 +208,36 @@ function GunController:KnitStart()
 
                 self.zoomedIn:Fire(true)
 
-                self.zoomInConnection = RunService.RenderStepped:Connect(function(dt)
-                    if localPlayer.CameraMinZoomDistance >= 2.2 then
-                        localPlayer.CameraMinZoomDistance -= dt * 25
-                        localPlayer.CameraMaxZoomDistance -= dt * 25
-                    else
-                        self.zoomInConnection:Disconnect()
-                        self.zoomInConnection = nil
+                if self.gunSettings.ScopeUI then
+                    ScopeInterface:openInterface()
+                    localPlayer.CameraMinZoomDistance = 0.5
+                    localPlayer.CameraMaxZoomDistance = 0.5
+                    CameraController.camera.CameraSubject = self.currentTool.Parts.AimPart
+                    CameraController.camera.FieldOfView = 50
+                    for _, basePart: BasePart in self.currentTool:GetDescendants() do
+                        if basePart:IsA("BasePart") and (basePart.Name ~= 'Handle' and basePart.Name ~= 'AimPart') then
+                            basePart.Transparency = 1
+                        end
                     end
-                end)
+                else
+                    self.zoomInConnection = RunService.RenderStepped:Connect(function(dt)
+                        if localPlayer.CameraMinZoomDistance >= 2.2 then
+                            localPlayer.CameraMinZoomDistance -= dt * 25
+                            localPlayer.CameraMaxZoomDistance -= dt * 25
+                        else
+                            self.zoomInConnection:Disconnect()
+                            self.zoomInConnection = nil
+                        end
+                    end)
+                end
+
             end
         end
     end)
 
     UserInputService.InputEnded:Connect(function(input, gp)
+        local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             if self._onTrigger then
                 self._onTrigger = false
@@ -228,17 +253,32 @@ function GunController:KnitStart()
 
                 self.zoomedIn:Fire(false)
 
-                self.zoomOutConnection = RunService.RenderStepped:Connect(function(dt)
-                    if localPlayer.CameraMinZoomDistance < 5.5 then
-                        localPlayer.CameraMinZoomDistance += dt * 25
-                        localPlayer.CameraMaxZoomDistance += dt * 25
-                    else
-                        localPlayer.CameraMinZoomDistance = 5.5
-                        localPlayer.CameraMaxZoomDistance = 5.5
-                        self.zoomOutConnection:Disconnect()
-                        self.zoomOutConnection = nil
+                if self.gunSettings.ScopeUI then
+                    ScopeInterface:closeInterface()
+                    character.Humanoid.CameraOffset = Vector3.new(2.1, 0, 0)
+                    localPlayer.CameraMaxZoomDistance = 5.5
+                    localPlayer.CameraMinZoomDistance = 5.5
+                    CameraController.camera.CameraSubject = character.Humanoid
+                    CameraController.camera.FieldOfView = 70
+                    for _, basePart: BasePart in self.currentTool:GetDescendants() do
+                        if basePart:IsA("BasePart") and (basePart.Name ~= 'Handle' and basePart.Name ~= 'AimPart') then
+                            basePart.Transparency = 0
+                        end
                     end
-                end)
+                else
+                    self.zoomOutConnection = RunService.RenderStepped:Connect(function(dt)
+                        if localPlayer.CameraMinZoomDistance < 5.5 then
+                            localPlayer.CameraMinZoomDistance += dt * 25
+                            localPlayer.CameraMaxZoomDistance += dt * 25
+                        else
+                            localPlayer.CameraMinZoomDistance = 5.5
+                            localPlayer.CameraMaxZoomDistance = 5.5
+                            self.zoomOutConnection:Disconnect()
+                            self.zoomOutConnection = nil
+                        end
+                    end)
+                end
+
             end
         end
     end)
@@ -249,6 +289,7 @@ function GunController:KnitInit()
     BulletController = Knit.GetController("BulletController")
     CameraController = Knit.GetController("CameraController")
     CrosshairInterface = Knit.GetController("CrosshairInterface")
+    ScopeInterface = Knit.GetController("ScopeInterface")
 
     UserInputService.MouseIconEnabled = false
 end

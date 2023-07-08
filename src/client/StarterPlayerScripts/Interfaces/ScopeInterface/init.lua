@@ -35,7 +35,7 @@ function ScopeInterface:KnitInit()
 end
 
 function ScopeInterface:KnitStart()
-    self:openInterface()
+    
 end
 
 return ScopeInterface
