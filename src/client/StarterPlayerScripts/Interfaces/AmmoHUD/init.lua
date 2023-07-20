@@ -11,7 +11,9 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
 local AmmoHUDInterface = Knit.CreateController({
-    Name = script.Name
+    Name = script.Name,
+
+    _unmounting = false
 })
 
 function AmmoHUDInterface:render()
@@ -19,16 +21,35 @@ function AmmoHUDInterface:render()
 end
 
 function AmmoHUDInterface:openInterface()
+    if self.roactHandle then
+        print("EXISTING")
+        return
+    end
+
     self.roactHandle = Roact.mount(Roact.createElement("ScreenGui", {
         ResetOnSpawn = false,
         IgnoreGuiInset = true
     }, {
         container = self:render()
     }), playerGui, script.Name)
+
+end
+
+function AmmoHUDInterface:closeInterface()
+    if self.roactHandle then
+        if self._unmounting then
+            return
+        end
+
+        self._unmounting = true
+
+        Roact.unmount(self.roactHandle)
+        self.roactHandle = nil
+        self._unmounting = false
+    end
 end
 
 function AmmoHUDInterface:KnitStart()
-    -- self:openInterface()
 end
 
 function AmmoHUDInterface:KnitInit()

@@ -27,7 +27,10 @@ function ScopeInterface:openInterface()
 end
 
 function ScopeInterface:closeInterface()
-    Roact.unmount(self.roactHandle)
+    if self.roactHandle then
+        Roact.unmount(self.roactHandle)
+        self.roactHandle = nil
+    end
 end
 
 function ScopeInterface:KnitInit()

@@ -10,6 +10,7 @@ bulletStorage.Name = 'BulletStorage'
 bulletStorage.Parent = workspace
 
 local BulletService
+local ScopeInterface
 
 local BulletController = Knit.CreateController({
     Name = script.Name,
@@ -30,7 +31,7 @@ function BulletController:renderBullet(character, startPos, direction, gunSettin
 	local startTime = tick()
 
 	local bullet = Instance.new('Part')
-	bullet.Size = Vector3.new(0.0,0.1,0.4)
+	bullet.Size = Vector3.new(0.0,0.05,0.2)
 	bullet.Anchored = true
 	bullet.CanCollide = false
 	bullet.BrickColor = BrickColor.new('Gold')
@@ -46,7 +47,6 @@ function BulletController:renderBullet(character, startPos, direction, gunSettin
 
 	local sound = game.ReplicatedStorage.Assets.Sounds.GunFire[currentTool.Name]:Clone()
 	sound.Parent = currentTool.Handle
-	sound.SoundId = gunAssetsData[currentTool.Name].FireSound
 	sound.Volume = 0.2
 	sound:Play()
 	sound.Ended:Connect(function()
@@ -55,12 +55,11 @@ function BulletController:renderBullet(character, startPos, direction, gunSettin
 
 	task.spawn(function()
 		if not currentTool then return end
-		currentTool.Parts.main.Muzzle.PointLight.Enabled = true
-		currentTool.Parts.main.Muzzle.MuzzleEffect.Enabled = true
-		task.wait(0.05)
-		if not currentTool then return end
-		currentTool.Parts.main.Muzzle.PointLight.Enabled = false
-		currentTool.Parts.main.Muzzle.MuzzleEffect.Enabled = false
+		local muzzleEffect = currentTool.Parts.main.Muzzle.MuzzleEffect
+
+		if not ScopeInterface.roactHandle then
+			muzzleEffect:Emit(1)
+		end
 	end)
 
 	local currentRange = gunSettings.Range
@@ -81,9 +80,15 @@ function BulletController:renderBullet(character, startPos, direction, gunSettin
 			currentPos = ray.Position
 		end
 
+		if ScopeInterface.roactHandle then
+			bullet.Transparency = 1
+		else
+			bullet.Transparency = 0
+		end
+
 		local bulletOffset = CFrame.new(0,0, -(lastPos-currentPos).Magnitude/2)
 		bullet.CFrame = CFrame.new(currentPos,lastPos) * bulletOffset
-		bullet.Size = Vector3.new(.1,.1,(lastPos - currentPos).Magnitude)
+		bullet.Size = Vector3.new(0,0.05,(lastPos - currentPos).Magnitude)
 
 		if ray then
 			break
@@ -111,6 +116,7 @@ end
 
 function BulletController:KnitInit()
 	BulletService = Knit.GetService("BulletService")
+	ScopeInterface = Knit.GetController("ScopeInterface")
 end
 
 return BulletController

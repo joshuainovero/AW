@@ -1,3 +1,4 @@
+local DataStoreService = game:GetService("DataStoreService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -6,14 +7,18 @@ local localPlayer = Players.LocalPlayer
 
 local Knit = require(ReplicatedStorage.Packages.Knit)
 local Signal = require(ReplicatedStorage.Packages.Signal)
+local Janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local gunPresets = require(ReplicatedStorage.Data.GunPresets)
 
 local BulletService
+local InventoryService
+local DataService
 local BulletController
 local CameraController
 local CrosshairInterface
 local ScopeInterface
+local AmmoHUDInterface
 local GunController = Knit.CreateController({
     Name = script.Name,
 
@@ -22,6 +27,10 @@ local GunController = Knit.CreateController({
         recoil = {},
         reload = {}
     },
+    
+    _janitor = Janitor.new(),
+
+    ammo = 0,
 
     gunSettings = {} :: table,
 
@@ -41,7 +50,9 @@ local GunController = Knit.CreateController({
 
     fired = Signal.new(),
 
-    zoomedIn = Signal.new()
+    zoomedIn = Signal.new(),
+
+    ammoUpdated = Signal.new()
 })
 
 function GunController:_setGunPresets(settings)
@@ -101,6 +112,18 @@ function GunController:_recoil()
 end
 
 function GunController:_fire(character)
+    if self.currentReloadTrack.IsPlaying then
+        print("Reloading")
+        return
+    end
+
+    local ammo = self.currentTool:GetAttribute("Ammo")
+
+    if not ammo or ammo < 1 then
+        print("No ammo")
+        return
+    end
+
     if tick() - self._fireTick < self.gunSettings.FireRate then
         return
     end
@@ -126,6 +149,25 @@ function GunController:_fire(character)
     BulletService.fireBullet:Fire(character, startPos, targetPosition)
 end
 
+function GunController:_reload()
+    if self.currentReloadTrack.IsPlaying then
+        print("Already reloading")
+        return
+    end
+
+    local success, state = DataService:validateAmmoAvailabilityRequested(self.currentTool):await()
+
+    state = success and state
+
+    if not state then
+        print("No ammo available. can't reload")
+        return
+    end
+
+    self.currentReloadTrack:Play()
+
+end
+
 function GunController:loadAnimations()
     local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
     local humanoid = character:WaitForChild("Humanoid")
@@ -149,12 +191,36 @@ function GunController:loadAnimations()
 
     character.ChildAdded:Connect(function(child)
         if child:IsA("Tool") then
+            local success, inventory = InventoryService:getInventoryRequested():await()
+            inventory = success and inventory
+            if not inventory then
+                print("Failed to get inventory")
+                return
+            end
+
+            UserInputService.MouseIconEnabled = false
+            localPlayer.CameraMinZoomDistance = 5.5
+            localPlayer.CameraMaxZoomDistance = 5.5
             self:_setGunPresets(gunPresets[child.Name])
             self.currentIdleTrack = self.gunAnimations.idle[child.Name].AnimationTrack
             self.currentRecoilTrack = self.gunAnimations.recoil[child.Name].AnimationTrack
             self.currentReloadTrack = self.gunAnimations.reload[child.Name].AnimationTrack
             self.currentTool = child
+
+            self._janitor:Add(self.currentReloadTrack.Stopped:Connect(function()
+                local reloadRequestState, updatedAmmoAvailability = DataService:updateAmmoRequested(self.currentTool):await()
+
+                updatedAmmoAvailability = reloadRequestState and updatedAmmoAvailability
+
+                if updatedAmmoAvailability then
+                    self.ammoUpdated:Fire(child:GetAttribute("Ammo") or 0, updatedAmmoAvailability)
+                end
+                
+            end))
+            
             self.currentIdleTrack:Play()
+
+            AmmoHUDInterface:openInterface()
 
             if self.gunSettings.CrosshairEnabled then
                 CrosshairInterface:openInterface()
@@ -166,20 +232,31 @@ function GunController:loadAnimations()
             else
                 CameraController:enableOTS(true)
             end
+
+            local availableAmmo = inventory.Ammo[child.Name]
+
+            self.ammoUpdated:Fire(child:GetAttribute("Ammo") or 0, availableAmmo)
+
         end
     end)
 
     character.ChildRemoved:Connect(function(child)
         if child:IsA("Tool") then
-            if self.currentIdleTrack then
-                self.currentIdleTrack:Stop()
-                self.currentRecoilTrack:Stop()
-                self.currentReloadTrack:Stop()
-                self.currentTool = nil
-                CameraController:enableOTS(false)
-                CameraController:enableScope(false)
-                CrosshairInterface:closeInterface()
-            end
+            self._janitor:Cleanup()
+            UserInputService.MouseIconEnabled = true
+            self.currentIdleTrack:Stop()
+            self.currentRecoilTrack:Stop()
+            self.currentReloadTrack:Stop()
+            self.currentTool = nil
+            CameraController:enableOTS(false)
+            CameraController:enableScope(false)
+            CrosshairInterface:closeInterface()
+            ScopeInterface:closeInterface()
+            AmmoHUDInterface:closeInterface()
+            localPlayer.CameraMaxZoomDistance = 8.5
+            localPlayer.CameraMinZoomDistance = 8.5
+            CameraController.camera.CameraSubject = character.Humanoid
+            CameraController.camera.FieldOfView = 70
         end
     end)
 
@@ -187,6 +264,14 @@ end
 
 function GunController:KnitStart()
     UserInputService.InputBegan:Connect(function(input, gp)
+        if not self.currentTool then
+            return
+        end
+
+        if gp then
+            return
+        end
+
         local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
 
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -200,6 +285,10 @@ function GunController:KnitStart()
             end
 
         elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
+            if not self.currentTool then
+                return
+            end
+
             if not self.zoomInConnection then
                 if self.zoomOutConnection then
                     self.zoomOutConnection:Disconnect()
@@ -232,7 +321,11 @@ function GunController:KnitStart()
                 end
 
             end
+
+        elseif input.KeyCode == Enum.KeyCode.R then
+            self:_reload()
         end
+        
     end)
 
     UserInputService.InputEnded:Connect(function(input, gp)
@@ -245,6 +338,10 @@ function GunController:KnitStart()
             end
 
         elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
+            if not self.currentTool then
+                return
+            end
+
             if not self.zoomOutConnection then
                 if self.zoomInConnection then
                     self.zoomInConnection:Disconnect()
@@ -286,12 +383,13 @@ end
 
 function GunController:KnitInit()
     BulletService = Knit.GetService("BulletService")
+    InventoryService = Knit.GetService("InventoryService")
+    DataService = Knit.GetService("DataService")
     BulletController = Knit.GetController("BulletController")
     CameraController = Knit.GetController("CameraController")
     CrosshairInterface = Knit.GetController("CrosshairInterface")
     ScopeInterface = Knit.GetController("ScopeInterface")
-
-    UserInputService.MouseIconEnabled = false
+    AmmoHUDInterface = Knit.GetController("AmmoHUD")
 end
 
 return GunController

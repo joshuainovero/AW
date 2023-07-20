@@ -22,6 +22,7 @@ local CameraController = Knit.CreateController({
 
 function CameraController:enableOTS(state: boolean)
     self._janitor:Cleanup()
+    UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 
     if state then
 
@@ -59,6 +60,7 @@ end
 
 function CameraController:enableScope(state : boolean)
     self._janitor:Cleanup()
+    UserInputService.MouseBehavior = Enum.MouseBehavior.Default
     local character = player.Character
     local humanoidRootPart = character.HumanoidRootPart
     local humanoid = character.Humanoid
