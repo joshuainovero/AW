@@ -66,6 +66,8 @@ function BulletService:fireBullet(player : Player, bulletOwner, startPosition: V
 	-- 	bullet.Parent = folder
 	-- end
     
+	tool:SetAttribute("Ammo", math.clamp(tool:GetAttribute("Ammo") - 1, 0, math.huge))
+
 	while range > 0 do
 		local timePassed = tick() - startTime
 

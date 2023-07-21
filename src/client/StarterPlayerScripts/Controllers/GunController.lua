@@ -9,6 +9,7 @@ local Knit = require(ReplicatedStorage.Packages.Knit)
 local Signal = require(ReplicatedStorage.Packages.Signal)
 local Janitor = require(ReplicatedStorage.Packages.Janitor)
 
+local GunMaxCapacity = require(ReplicatedStorage.Data.GunMaxCapacity)
 local gunPresets = require(ReplicatedStorage.Data.GunPresets)
 
 local BulletService
@@ -30,7 +31,8 @@ local GunController = Knit.CreateController({
     
     _janitor = Janitor.new(),
 
-    ammo = 0,
+    clientAmmo = 0,
+    clientAmmoAvailable = 0,
 
     gunSettings = {} :: table,
 
@@ -117,18 +119,24 @@ function GunController:_fire(character)
         return
     end
 
-    local ammo = self.currentTool:GetAttribute("Ammo")
-
-    if not ammo or ammo < 1 then
-        print("No ammo")
-        return
-    end
-
     if tick() - self._fireTick < self.gunSettings.FireRate then
         return
     end
     
     self._fireTick = tick()
+
+    local ammo = self.currentTool:GetAttribute("Ammo")
+
+    if not ammo or ammo < 1 then
+        local emptyGunSound = ReplicatedStorage.Assets.Sounds.GunFire.EmptyGun:Clone()
+        emptyGunSound.Parent = self.currentTool.Handle
+        emptyGunSound.Ended:Connect(function()
+            emptyGunSound:Destroy()
+        end)
+        emptyGunSound:Play()
+        return
+    end
+
 
     local targetPosition = self:_getTargetPosition()
     local startPos = self.currentTool.Parts.main.Muzzle.WorldPosition
@@ -139,6 +147,8 @@ function GunController:_fire(character)
     self.currentRecoilTrack:AdjustSpeed(self.gunSettings.RecoilAnimSpeed)
 
     self.fired:Fire()
+    self.clientAmmo = math.clamp(self.clientAmmo - 1, 0, GunMaxCapacity[self.currentTool.Name])
+    self.ammoUpdated:Fire(self.clientAmmo, self.clientAmmoAvailable)
     task.spawn(function()
         self:_recoil()
     end)
@@ -213,7 +223,9 @@ function GunController:loadAnimations()
                 updatedAmmoAvailability = reloadRequestState and updatedAmmoAvailability
 
                 if updatedAmmoAvailability then
-                    self.ammoUpdated:Fire(child:GetAttribute("Ammo") or 0, updatedAmmoAvailability)
+                    self.clientAmmo = child:GetAttribute("Ammo") or 0
+                    self.clientAmmoAvailable = updatedAmmoAvailability
+                    self.ammoUpdated:Fire(self.clientAmmo, self.clientAmmoAvailable)
                 end
                 
             end))
@@ -233,9 +245,10 @@ function GunController:loadAnimations()
                 CameraController:enableOTS(true)
             end
 
-            local availableAmmo = inventory.Ammo[child.Name]
+            self.clientAmmo = child:GetAttribute("Ammo") or 0
+            self.clientAmmoAvailable = inventory.Ammo[child.Name]
 
-            self.ammoUpdated:Fire(child:GetAttribute("Ammo") or 0, availableAmmo)
+            self.ammoUpdated:Fire(self.clientAmmo, self.clientAmmoAvailable)
 
         end
     end)

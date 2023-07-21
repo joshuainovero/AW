@@ -9,6 +9,9 @@ local Container = Roact.Component:extend(script.Name)
 
 local GunController
 
+local CAPACITY_SIZE = UDim2.fromScale(0.284, 0.928)
+local AVAILABLE_SIZE = UDim2.fromScale(0.239, 0.554)
+
 Knit.OnStart():andThen(function()
     GunController = Knit.GetController("GunController")
 end):catch(warn)
@@ -16,7 +19,8 @@ end):catch(warn)
 function Container:init()
     self._janitor = Janitor.new()
 
-    self.imageLabelRef = Roact.createRef()
+    self._imageLabelRef = Roact.createRef()
+    self._capacityRef = Roact.createRef()
 end
 
 function Container:didMount()
@@ -32,9 +36,16 @@ function Container:didMount()
         })
     end))
 
-    local imageLabel = self.imageLabelRef:getValue()
+    local imageLabel = self._imageLabelRef:getValue()
 
     TweenService:Create(imageLabel, TweenInfo.new(0.15, Enum.EasingStyle.Linear), {Position = UDim2.fromScale(1, 1)}):Play()
+end
+
+function Container:didUpdate()
+    local info = TweenInfo.new(0.15, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, 0, false, 0)
+    local capacityText = self._capacityRef:getValue()
+    capacityText.Size = CAPACITY_SIZE + UDim2.fromScale(0.3, 0.3)
+    TweenService:Create(capacityText, info, {Size = CAPACITY_SIZE}):Play()
 end
 
 function Container:willUnmount()
@@ -49,7 +60,7 @@ function Container:render()
         BackgroundTransparency = 1,
         Image = "rbxassetid://14096011789",
         ImageColor3 = Color3.new(0),
-        [Roact.Ref] = self.imageLabelRef
+        [Roact.Ref] = self._imageLabelRef
     }, {
         uiAspectRatioConstraint = Roact.createElement("UIAspectRatioConstraint", {
             AspectRatio = 3.7
@@ -66,19 +77,20 @@ function Container:render()
         capacityText = Roact.createElement("TextLabel", {
             Name = "Capacity",
             TextScaled = true,
-            Size = UDim2.fromScale(0.284, 0.928),
-            Position = UDim2.fromScale(0.333, 0.5),
-            AnchorPoint = Vector2.new(0, 0.5),
+            Size = CAPACITY_SIZE,
+            Position = UDim2.fromScale(0.49, 0.5),
+            AnchorPoint = Vector2.new(0.5, 0.5),
             TextColor3 = Color3.new(1, 1, 1),
             Font = Enum.Font.Sarpanch,
             Text = self.state.capacity,
-            BackgroundTransparency = 1
+            BackgroundTransparency = 1,
+            [Roact.Ref] = self._capacityRef
         }),
 
         availableText = Roact.createElement("TextLabel", {
             Name = "Available",
             TextScaled = true,
-            Size = UDim2.fromScale(0.239, 0.554),
+            Size = AVAILABLE_SIZE,
             Position = UDim2.fromScale(0.642, 0.5),
             AnchorPoint = Vector2.new(0, 0.5),
             TextColor3 = Color3.new(1, 1, 1),

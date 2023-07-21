@@ -59,7 +59,7 @@ function DataService:updateAmmo(player: Player, tool: Tool)
 		tool:SetAttribute("Ammo", 0)
 	end
 
-	tool:SetAttribute("Ammo", tool:GetAttribute("Ammo") + pendingAmmo)
+	tool:SetAttribute("Ammo", tool:GetAttribute("Ammo") + (pendingAmmo - tool:GetAttribute("Ammo")))
 
 	return inventory.Ammo[tool.Name]
 
