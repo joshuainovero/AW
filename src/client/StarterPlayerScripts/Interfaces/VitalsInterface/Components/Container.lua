@@ -6,22 +6,24 @@ local VitalBar = require(script.Parent:WaitForChild("VitalBar"))
 
 local Container = Roact.Component:extend(script.Name)
 
+local player = game:GetService("Players").LocalPlayer
+
 function Container:init()
-    local player = game.Players.LocalPlayer
 
-    local char = player.Character or player.CharacterAdded:Wait()
-
-    local hum = char:WaitForChild("Humanoid")
+    player.CharacterAdded:Connect(function(character)
+        self.humanoid = character:WaitForChild("Humanoid")
+        self.humanoid.HealthChanged:Connect(function(newHealth)
+            self:setState({
+                health = newHealth/100
+            })
+        end)
+    end)
 
     self:setState({
         health = 1
     })
 
-    hum.HealthChanged:Connect(function(health)
-        self:setState({
-            health = health/100
-        })
-    end)
+    self.humanoid = nil :: Humanoid
 end
 
 function Container:didMount()
@@ -47,7 +49,7 @@ function Container:render()
             position = UDim2.fromScale(0.208, 0.349),
             image = "rbxassetid://14154907637",
             aspectRatio = 7.938,
-            barColor = Color3.fromRGB(171,13,2),
+            barColor = Color3.fromRGB(255, 102, 102),
             barSize = self.state.health
         }),
 
@@ -56,7 +58,7 @@ function Container:render()
             position = UDim2.fromScale(0.206, 0.582),
             image = "rbxassetid://14154907637",
             aspectRatio = 7.938,
-            barColor = Color3.fromRGB(0, 170, 255),
+            barColor = Color3.fromRGB(102, 204, 255),
             barSize = 0.4
         }),
 

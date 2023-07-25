@@ -1,3 +1,4 @@
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Knit = require(ReplicatedStorage.Packages.Knit)
@@ -5,6 +6,7 @@ local Janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local gunPresets = require(ReplicatedStorage.Data.GunPresets)
 
+local CharacterService
 local BulletService = Knit.CreateService({
     Name = script.Name,
 
@@ -90,17 +92,29 @@ function BulletService:fireBullet(player : Player, bulletOwner, startPosition: V
 			--print(ray.Instance)
 			local hit = ray.Instance
 			currentPos = ray.Position
-			
+
 			local model = hit:FindFirstAncestorOfClass('Model')
 			if model then
 				local humanoid = model:FindFirstChildWhichIsA('Humanoid') or nil
 				if humanoid then
-					humanoid:TakeDamage(gunSettings.BaseDamage)
+					if humanoid.Health > 0 then
+						humanoid:TakeDamage(gunSettings.BaseDamage)
+						if humanoid.Health <= 0 then
+							local validPlayer = Players:GetPlayerFromCharacter(model)
+							if not validPlayer then
+								humanoid.BreakJointsOnDeath = false
+								humanoid.RequiresNeck = false
+								CharacterService:ragDollCharacter(model)
+							end
+
+						end
+					end
+
 				end
 			end
 			break
 		end
-		
+
 		lastPos = currentPos
 		task.wait()
 	end
@@ -113,7 +127,7 @@ function BulletService:KnitStart()
 end
 
 function BulletService:KnitInit()
-
+	CharacterService = Knit.GetService("CharacterService")
 end
 
 return BulletService

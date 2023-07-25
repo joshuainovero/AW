@@ -1,9 +1,12 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Debris = game:GetService("Debris")
 
 local Knit = require(ReplicatedStorage.Packages.Knit)
 local Janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local gunAssetsData = require(ReplicatedStorage.Data.GunAssets)
+
+local effects = ReplicatedStorage.Assets.Effects
 
 local bulletStorage = Instance.new('Folder')
 bulletStorage.Name = 'BulletStorage'
@@ -78,6 +81,15 @@ function BulletController:renderBullet(character, startPos, direction, gunSettin
 		if ray then
 			local hit = ray.Instance
 			currentPos = ray.Position
+			local bloodHitEffectClone = effects.BloodHitEffect:Clone()
+			local bloodEffect = bloodHitEffectClone.Attachment.Blood
+			bloodEffect.Enabled = true
+
+			bloodHitEffectClone.Position = currentPos
+			bloodHitEffectClone.Parent = workspace
+			
+			bloodEffect:Emit(100)
+			Debris:AddItem(bloodHitEffectClone, 1)
 		end
 
 		if ScopeInterface.roactHandle then
