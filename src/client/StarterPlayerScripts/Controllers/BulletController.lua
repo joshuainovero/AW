@@ -78,20 +78,6 @@ function BulletController:renderBullet(character, startPos, direction, gunSettin
 			ray = workspace:Raycast(currentPos, lastPos - currentPos, rayFilter)
 		end
 
-		if ray then
-			local hit = ray.Instance
-			currentPos = ray.Position
-			local bloodHitEffectClone = effects.BloodHitEffect:Clone()
-			local bloodEffect = bloodHitEffectClone.Attachment.Blood
-			bloodEffect.Enabled = true
-
-			bloodHitEffectClone.Position = currentPos
-			bloodHitEffectClone.Parent = workspace
-			
-			bloodEffect:Emit(100)
-			Debris:AddItem(bloodHitEffectClone, 1)
-		end
-
 		if ScopeInterface.roactHandle then
 			bullet.Transparency = 1
 		else
@@ -103,6 +89,25 @@ function BulletController:renderBullet(character, startPos, direction, gunSettin
 		bullet.Size = Vector3.new(0,0.05,(lastPos - currentPos).Magnitude)
 
 		if ray then
+			local hit = ray.Instance
+			currentPos = ray.Position
+
+			local model = hit:FindFirstAncestorOfClass('Model')
+			if model then
+				local humanoid = model:FindFirstChildWhichIsA('Humanoid') or nil
+				if humanoid then
+					local bloodHitEffectClone = effects.BloodHitEffect:Clone()
+					bloodHitEffectClone.CanQuery = false
+					local bloodEffect = bloodHitEffectClone.Attachment.Blood
+					bloodEffect.Enabled = true
+		
+					bloodHitEffectClone.Position = currentPos
+					bloodHitEffectClone.Parent = workspace
+					
+					bloodEffect:Emit(50)
+					Debris:AddItem(bloodHitEffectClone, 1)
+				end
+			end
 			break
 		end
 
