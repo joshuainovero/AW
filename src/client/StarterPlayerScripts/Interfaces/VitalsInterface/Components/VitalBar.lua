@@ -28,12 +28,12 @@ local function vitalBar(props)
                 Transparency = NumberSequence.new({
                     NumberSequenceKeypoint.new(0,0),
 
-                    NumberSequenceKeypoint.new(props.barSize - 0.001, 0),
+                    NumberSequenceKeypoint.new(math.clamp(props.barSize - 0.001, 0, props.barSize), 0),
                     NumberSequenceKeypoint.new(props.barSize, 1),
 
                     NumberSequenceKeypoint.new(1,1)
                 })
-            })
+            }),
         }),
 
         Roact.createFragment(props[Roact.Children])

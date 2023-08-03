@@ -12,6 +12,10 @@ function Container:init()
 
     player.CharacterAdded:Connect(function(character)
         self.humanoid = character:WaitForChild("Humanoid")
+        self:setState({
+            health = self.humanoid.Health/100
+        })
+
         self.humanoid.HealthChanged:Connect(function(newHealth)
             self:setState({
                 health = newHealth/100
@@ -20,7 +24,8 @@ function Container:init()
     end)
 
     self:setState({
-        health = 1
+        health = 1,
+        shield = 1
     })
 
     self.humanoid = nil :: Humanoid
@@ -51,6 +56,18 @@ function Container:render()
             aspectRatio = 7.938,
             barColor = Color3.fromRGB(255, 102, 102),
             barSize = self.state.health
+        }, {
+            textBar = Roact.createElement("TextLabel", {
+                TextScaled = true,
+                Size = UDim2.fromScale(1, 0.67),
+                Position = UDim2.fromScale(0.5, 0.5),
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                BackgroundTransparency = 1,
+                TextColor3 = Color3.new(1,1,1),
+                Text = tostring(math.ceil(self.state.health * 100)),
+                FontFace = Font.new("rbxasset://fonts/families/Michroma.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
+                ZIndex = 5
+            }),
         }),
 
         shieldBar = Roact.createElement(VitalBar, {
@@ -59,7 +76,19 @@ function Container:render()
             image = "rbxassetid://14154907637",
             aspectRatio = 7.938,
             barColor = Color3.fromRGB(102, 204, 255),
-            barSize = 0.4
+            barSize = self.state.shield
+        }, {
+            textBar = Roact.createElement("TextLabel", {
+                TextScaled = true,
+                Size = UDim2.fromScale(1, 0.67),
+                Position = UDim2.fromScale(0.5, 0.5),
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                BackgroundTransparency = 1,
+                TextColor3 = Color3.new(1,1,1),
+                Text = tostring(math.ceil(self.state.shield * 100)),
+                FontFace = Font.new("rbxasset://fonts/families/Michroma.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
+                ZIndex = 5
+            }),
         }),
 
         levelBar = Roact.createElement(VitalBar, {

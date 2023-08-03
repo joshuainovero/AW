@@ -134,6 +134,8 @@ function GunController:_fire(character)
             emptyGunSound:Destroy()
         end)
         emptyGunSound:Play()
+
+        RunService:UnbindFromRenderStep("AutoGun")
         return
     end
 
@@ -289,7 +291,8 @@ function GunController:KnitStart()
 
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             self._onTrigger = true
-            if self.gunSettings.Auto then
+            local ammo = self.currentTool:GetAttribute("Ammo")
+            if self.gunSettings.Auto and (ammo > 0) then
                 RunService:BindToRenderStep("AutoGun", 2, function()
                     self:_fire(character)
                 end)
