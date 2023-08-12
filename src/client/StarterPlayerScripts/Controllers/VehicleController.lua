@@ -87,9 +87,26 @@ function VehicleController:KnitStart()
         elseif input.KeyCode == Enum.KeyCode.Q then
             self:shiftGear(math.clamp(self.currentGear - 1, 1, 6))
             print(self.currentGear)
+        elseif input.KeyCode == Enum.KeyCode.R then
+            self.currentVehicle.Back.LeftWheel.HingeConstraint.ActuatorType = Enum.ActuatorType.Motor
+            self.currentVehicle.Back.RightWheel.HingeConstraint.ActuatorType = Enum.ActuatorType.Motor
+            
+            self.currentVehicle.Back.LeftWheel.HingeConstraint.MotorMaxTorque = 50000
+            self.currentVehicle.Back.RightWheel.HingeConstraint.MotorMaxTorque = 50000
         end
     end)
     
+    UserInputService.InputEnded:Connect(function(input, gameProcessedEvent)
+        if gameProcessedEvent then
+            return
+        end
+
+        if input.KeyCode == Enum.KeyCode.R then
+            self.currentVehicle.Back.LeftWheel.HingeConstraint.ActuatorType = Enum.ActuatorType.None
+            self.currentVehicle.Back.RightWheel.HingeConstraint.ActuatorType = Enum.ActuatorType.None
+        end
+        
+    end)
 end
 
 function VehicleController:KnitInit()
