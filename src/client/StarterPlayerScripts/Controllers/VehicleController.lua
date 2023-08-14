@@ -1,22 +1,29 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 local Knit = require(ReplicatedStorage.Packages.Knit)
 local Janitor = require(ReplicatedStorage.Packages.Janitor)
+local Signal = require(ReplicatedStorage.Packages.Signal)
 
 local vehicleSettings = require(ReplicatedStorage.Data.VehiclesData)
 
 local vehicles = ReplicatedStorage.Assets.Vehicles
 
 local VehicleService
+local SpeedometerInterface
 local VehicleController = Knit.CreateController({
     Name = script.Name,
 
     currentVehicle = nil :: Model,
     currentGear = 1,
     maxAngularSpeed = 0,
-    _janitor = Janitor.new()
+    _janitor = Janitor.new(),
+
+    speedChanged = Signal.new(),
+    gearChanged = Signal.new(),
+    rpmPercentageChanged = Signal.new()
 })
 
 function VehicleController:shiftGear(gear: number)
@@ -43,6 +50,8 @@ function VehicleController:shiftGear(gear: number)
     self.currentVehicle.Back.RightWheel.AngularVelocity.AngularVelocity = Vector3.new(self.maxAngularSpeed * seat.Throttle, 0, 0)
 
     self.currentGear = gear
+
+    self.gearChanged:Fire(gear)
 end
 
 function VehicleController:KnitStart()
@@ -50,13 +59,17 @@ function VehicleController:KnitStart()
         self.currentVehicle = vehicle
         local seat: VehicleSeat = self.currentVehicle.VehicleSeat
 
+        seat.HeadsUpDisplay = false
+
         self:shiftGear(self.currentGear)
 
         self._janitor:Add(seat.Changed:Connect(function(property)
+            print(property)
             if property == "Occupant" then
                 if seat.Occupant == nil then
                     self._janitor:Cleanup()
                     self.currentGear = 1
+                    SpeedometerInterface:closeInterface()
                 end
             end
         end))
@@ -73,6 +86,19 @@ function VehicleController:KnitStart()
             self.currentVehicle.Front.LeftSteer.CylindricalConstraint.TargetAngle = 30 * seat.Steer
             self.currentVehicle.Front.RightSteer.CylindricalConstraint.TargetAngle = 30 * seat.Steer
         end))
+
+        self._janitor:Add(RunService.RenderStepped:Connect(function()
+            local settings = vehicleSettings[self.currentVehicle.Name]
+            local currentSpeed = math.floor(seat.AssemblyLinearVelocity.Magnitude)
+
+            local rpmPercentage = currentSpeed / settings["Gear"..tostring(self.currentGear)].MaxSpeed
+
+            self.rpmPercentageChanged:Fire(rpmPercentage)
+
+            self.speedChanged:Fire(math.floor(currentSpeed))
+        end))
+
+        SpeedometerInterface:openInterface()
     end)
 
 
@@ -111,6 +137,7 @@ end
 
 function VehicleController:KnitInit()
     VehicleService = Knit.GetService("VehicleService")
+    SpeedometerInterface = Knit.GetController("SpeedometerInterface")
 end
 
 return VehicleController

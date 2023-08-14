@@ -351,7 +351,7 @@ end
 function CharacterService:KnitInit()
     Players.PlayerAdded:Connect(function(player)
         player.CharacterAdded:Connect(function(character)
-            player.CameraMaxZoomDistance = 20
+            player.CameraMaxZoomDistance = 25
             player.CameraMinZoomDistance = 8.8
 
             local humanoid = character:WaitForChild("Humanoid")
