@@ -36,11 +36,11 @@ function VehicleController:shiftGear(gear: number)
     local settings = vehicleSettings[self.currentVehicle.Name]
     seat.MaxSpeed = settings["Gear"..tostring(gear)].MaxSpeed
 
-    self.currentVehicle.Front.LeftWheel.AngularVelocity.MaxTorque = settings["Gear"..tostring(gear)].MaxTorque - (settings["Gear"..tostring(gear)].MaxTorque * 0.3)
-    self.currentVehicle.Front.RightWheel.AngularVelocity.MaxTorque = settings["Gear"..tostring(gear)].MaxTorque - (settings["Gear"..tostring(gear)].MaxTorque * 0.3)
+    self.currentVehicle.Front.LeftWheel.AngularVelocity.MaxTorque = settings["Gear"..tostring(gear)].MaxTorque
+    self.currentVehicle.Front.RightWheel.AngularVelocity.MaxTorque = settings["Gear"..tostring(gear)].MaxTorque
 
-    self.currentVehicle.Back.LeftWheel.AngularVelocity.MaxTorque = settings["Gear"..tostring(gear)].MaxTorque - (settings["Gear"..tostring(gear)].MaxTorque * 0.3)
-    self.currentVehicle.Back.RightWheel.AngularVelocity.MaxTorque = settings["Gear"..tostring(gear)].MaxTorque - (settings["Gear"..tostring(gear)].MaxTorque * 0.3)
+    self.currentVehicle.Back.LeftWheel.AngularVelocity.MaxTorque = settings["Gear"..tostring(gear)].MaxTorque
+    self.currentVehicle.Back.RightWheel.AngularVelocity.MaxTorque = settings["Gear"..tostring(gear)].MaxTorque
 
     self.maxAngularSpeed = settings["Gear"..tostring(gear)].MaxSpeed / (self.currentVehicle.Front.LeftWheel.Size.Y / 2)
     self.currentVehicle.Front.LeftWheel.AngularVelocity.AngularVelocity = Vector3.new(self.maxAngularSpeed * -seat.Throttle, 0, 0)

@@ -11,6 +11,9 @@ local VehicleController
 local MIN_ANGLE = 47
 local MAX_ANGLE = 313
 
+local RPM_DEFAULT_COLOR = Color3.fromRGB(255, 255, 255)
+local RPM_RED_LIMIT = 0.7
+
 function Container:init()
     VehicleController = Knit.GetController("VehicleController")
 
@@ -39,6 +42,7 @@ function Container:didMount()
     end))
 
     self._janitor:Add(VehicleController.rpmPercentageChanged:Connect(function(rpmPercentage_)
+        print(rpmPercentage_)
         local leftFrame = self.leftFrameRef:getValue()
         local rightFrame = self.rightFrameRef:getValue()
 
@@ -47,7 +51,12 @@ function Container:didMount()
         local leftRot = math.clamp(mappedAngle - 180, -180, 0)
 
         leftFrame.Rotation = leftRot
-    
+
+        if rpmPercentage_ < RPM_RED_LIMIT then
+            leftFrame.leftImage.ImageColor3 = RPM_DEFAULT_COLOR
+        else    
+            leftFrame.leftImage.ImageColor3 = RPM_DEFAULT_COLOR:Lerp(Color3.fromRGB(255, 0, 0), math.clamp((rpmPercentage_ - RPM_RED_LIMIT) / (1 - RPM_RED_LIMIT), 0, 1 ))
+        end
     
         if mappedAngle > 180 then
     
@@ -56,6 +65,12 @@ function Container:didMount()
     
             rightFrame.Rotation = rightRot
             rightFrame.Visible = true
+
+            if rpmPercentage_ < RPM_RED_LIMIT then
+                rightFrame.rightImage.ImageColor3 = RPM_DEFAULT_COLOR
+            else    
+                rightFrame.rightImage.ImageColor3 = RPM_DEFAULT_COLOR:Lerp(Color3.fromRGB(255, 0, 0), math.clamp((rpmPercentage_ - RPM_RED_LIMIT) / (1 - RPM_RED_LIMIT), 0, 1 ))
+            end
         else
             rightFrame.Visible = false
         end
@@ -160,8 +175,8 @@ function Container:render()
                             BackgroundTransparency = 1,
                             ImageRectOffset = Vector2.new(-500, 0),
                             ImageRectSize = Vector2.new(1024, 1024),
-                            Image = "rbxassetid://14430166513",
-                            ImageColor3 = Color3.fromRGB(60, 112, 244)
+                            Image = "rbxassetid://14455404427",
+                            ImageColor3 = Color3.fromRGB(5, 208, 235)
                         })
                     })
                 }),
@@ -184,8 +199,8 @@ function Container:render()
                             BackgroundTransparency = 1,
                             ImageRectOffset = Vector2.new(500, 0),
                             ImageRectSize = Vector2.new(1024, 1024),
-                            Image = "rbxassetid://14430166513",
-                            ImageColor3 = Color3.fromRGB(60, 112, 244)
+                            Image = "rbxassetid://14455404427",
+                            ImageColor3 = Color3.fromRGB(5, 208, 235)
                         })
                     })
                 })

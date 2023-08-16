@@ -6,27 +6,27 @@ return {
     [Vehicles.Chassis] = {
         Gear1 = {
             MaxSpeed = 60,
-            MaxTorque = 20000
+            MaxTorque = 13000
         },
 
         Gear2 = {
             MaxSpeed = 120,
-            MaxTorque = 16000
+            MaxTorque = 10000
         },
 
         Gear3 = {
             MaxSpeed = 180,
-            MaxTorque = 12000
+            MaxTorque = 8000
         },
 
         Gear4 = {
             MaxSpeed = 240,
-            MaxTorque = 8000
+            MaxTorque = 7000
         },
 
         Gear5 = {
             MaxSpeed = 300,
-            MaxTorque = 6000
+            MaxTorque = 5000
         },
 
         Gear6 = {
