@@ -1,3 +1,4 @@
 return {
-    Chassis = "Chassis"
+    Chassis = "Chassis",
+    VoltE = "VoltE"
 }

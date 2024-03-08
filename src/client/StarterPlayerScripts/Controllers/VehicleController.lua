@@ -11,6 +11,8 @@ local vehicleSettings = require(ReplicatedStorage.Data.VehiclesData)
 
 local vehicles = ReplicatedStorage.Assets.Vehicles
 
+local STEER_MULTIPLIER = 30
+
 local VehicleService
 local SpeedometerInterface
 local VehicleController = Knit.CreateController({
@@ -83,13 +85,18 @@ function VehicleController:KnitStart()
         end))
 
         self._janitor:Add(seat:GetPropertyChangedSignal("Steer"):Connect(function()
-            self.currentVehicle.Front.LeftSteer.CylindricalConstraint.TargetAngle = 30 * seat.Steer
-            self.currentVehicle.Front.RightSteer.CylindricalConstraint.TargetAngle = 30 * seat.Steer
+            self.currentVehicle.Front.LeftSteer.CylindricalConstraint.TargetAngle = STEER_MULTIPLIER * seat.Steer
+            self.currentVehicle.Front.RightSteer.CylindricalConstraint.TargetAngle = STEER_MULTIPLIER * seat.Steer
         end))
 
         self._janitor:Add(RunService.RenderStepped:Connect(function()
             local settings = vehicleSettings[self.currentVehicle.Name]
             local currentSpeed = math.floor(seat.AssemblyLinearVelocity.Magnitude)
+
+            local CONSTANT_BOOST = 50000 * 0.0477
+
+            local inclination = math.clamp(self.vehicle.PrimaryPart.CFrame.LookVector:Dot(Vector3.new(0, 1, 0), 0, 1))
+            local torque = self.currentGear + (inclination * CONSTANT_BOOST)
 
             local rpmPercentage = currentSpeed / settings["Gear"..tostring(self.currentGear)].MaxSpeed
 
@@ -107,6 +114,11 @@ function VehicleController:KnitStart()
             return
         end
 
+        if not self.currentVehicle then
+            warn("No vehicle")
+            return
+        end
+
         if input.KeyCode == Enum.KeyCode.E then
             self:shiftGear(math.clamp(self.currentGear + 1, 1, 6))
             print(self.currentGear)
@@ -117,8 +129,8 @@ function VehicleController:KnitStart()
             self.currentVehicle.Back.LeftWheel.HingeConstraint.ActuatorType = Enum.ActuatorType.Motor
             self.currentVehicle.Back.RightWheel.HingeConstraint.ActuatorType = Enum.ActuatorType.Motor
             
-            self.currentVehicle.Back.LeftWheel.HingeConstraint.MotorMaxTorque = 50000
-            self.currentVehicle.Back.RightWheel.HingeConstraint.MotorMaxTorque = 50000
+            self.currentVehicle.Back.LeftWheel.HingeConstraint.MotorMaxTorque = vehicleSettings[self.currentVehicle.Name] or 50000
+            self.currentVehicle.Back.RightWheel.HingeConstraint.MotorMaxTorque = vehicleSettings[self.currentVehicle.Name] or 50000
         end
     end)
     
@@ -130,8 +142,23 @@ function VehicleController:KnitStart()
         if input.KeyCode == Enum.KeyCode.R then
             self.currentVehicle.Back.LeftWheel.HingeConstraint.ActuatorType = Enum.ActuatorType.None
             self.currentVehicle.Back.RightWheel.HingeConstraint.ActuatorType = Enum.ActuatorType.None
+
+        else 
+
+            self.currentVehicle.Back.LeftWheel.HingeConstraint.ActuatorType = Enum.ActuatorType.Motor
+            self.currentVehicle.Back.RightWheel.HingeConstraint..ActuatorType = Enum.ActuatorType.Motor
         end
         
+    end)
+
+    UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+        if gameProcessedEvent then
+            return
+        end
+    
+        if input.KeyCode == Enum.KeyCode.R then
+            self.currentVehicle.Back.RightWheel.HingeConstraint.ActuatorType = Enum.ActuatorType.Nonea
+        end
     end)
 end
 

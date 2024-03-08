@@ -33,5 +33,14 @@ return {
             MaxSpeed = 340,
             MaxTorque = 4000
         }
+    },
+
+    [Vehicles.VoltE] = {
+        Gear1 = {
+            MaxSpeed = 60,
+            MaxTorque = 8000
+        }
     }
+
+    BREAK_MAX_TORQUE = 50000
 }
